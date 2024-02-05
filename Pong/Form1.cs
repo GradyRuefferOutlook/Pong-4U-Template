@@ -35,6 +35,7 @@ namespace Pong
 
         //determines whether a key is being pressed or not
         Boolean wKeyDown, sKeyDown, upKeyDown, downKeyDown;
+        Boolean iKeyDown, jKeyDown, kKeyDown, lKeyDown;
 
         // check to see if a new game can be started
         Boolean newGameOk = true;
@@ -46,6 +47,7 @@ namespace Pong
         const int BALL_WIDTH = 20;
         const int BALL_HEIGHT = 20; 
         Rectangle ball;
+        int ballXSpeed, ballYSpeed;
 
         //player values
         const int PADDLE_SPEED = 4;
@@ -54,10 +56,15 @@ namespace Pong
         const int PADDLE_HEIGHT = 40;
         Rectangle player1, player2;
 
+        //Score Values
+        Point pScore1, pScore2;
+
         //player and game scores
         int player1Score = 0;
         int player2Score = 0;
         int gameWinScore = 2;  // number of points needed to win game
+
+        int labelSpacer = 150;
 
         #endregion
 
@@ -82,6 +89,18 @@ namespace Pong
                     break;
                 case Keys.Down:
                     downKeyDown = true;
+                    break;
+                case Keys.I:
+                    iKeyDown = true;
+                    break;
+                case Keys.J:
+                    jKeyDown = true;
+                    break;
+                case Keys.K:
+                    kKeyDown = true;
+                    break;
+                case Keys.L:
+                    lKeyDown = true;
                     break;
                 case Keys.Y:
                 case Keys.Space:
@@ -116,6 +135,18 @@ namespace Pong
                 case Keys.Down:
                     downKeyDown = false;
                     break;
+                case Keys.I:
+                    iKeyDown = false;
+                    break;
+                case Keys.J:
+                    jKeyDown = false;
+                    break;
+                case Keys.K:
+                    kKeyDown = false;
+                    break;
+                case Keys.L:
+                    lKeyDown = false;
+                    break;
             }
         }
 
@@ -137,7 +168,11 @@ namespace Pong
             player2 = new Rectangle(this.Width - PADDLE_EDGE - PADDLE_WIDTH, this.Height / 2 - PADDLE_HEIGHT / 2, PADDLE_WIDTH, PADDLE_HEIGHT);
 
             // TODO create a ball rectangle in the middle of screen
+            ball = new Rectangle((this.Width / 2) - (BALL_WIDTH / 2), (this.Height / 2) - (BALL_HEIGHT / 2), BALL_WIDTH, BALL_HEIGHT);
 
+            //Set Score Locations
+            pScore1 = new Point((this.Width / 2) - labelSpacer, 10);
+            pScore2 = new Point((this.Width / 2) + labelSpacer - 10, 10);
         }
 
         /// <summary>
@@ -149,6 +184,7 @@ namespace Pong
             #region update ball position
 
             // TODO create code to move ball either left or right based on ballMoveRight and using BALL_SPEED
+            
 
             // TODO create code move ball either down or up based on ballMoveDown and using BALL_SPEED
 
@@ -159,6 +195,7 @@ namespace Pong
             if (wKeyDown == true && player1.Y > 0)
             {
                 // TODO create code to move player 1 up
+                player1.Y += PADDLE_SPEED;
             }
 
             // TODO create an if statement and code to move player 1 down 
@@ -239,9 +276,16 @@ namespace Pong
         {
             // TODO draw player2 using FillRectangle
             e.Graphics.FillRectangle(whiteBrush, player1);
+            e.Graphics.FillRectangle(whiteBrush, player2);
 
             // TODO draw ball using FillRectangle
+            e.Graphics.FillRectangle(whiteBrush, ball);
 
+            if (newGameOk == false)
+            {
+                e.Graphics.DrawString(Convert.ToString(player1Score), startLabel.Font, whiteBrush, pScore1);
+                e.Graphics.DrawString(Convert.ToString(player2Score), startLabel.Font, whiteBrush, pScore2);
+            }
         }
 
     }
