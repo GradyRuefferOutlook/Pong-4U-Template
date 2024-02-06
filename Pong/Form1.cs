@@ -29,6 +29,12 @@ namespace Pong
 
         //graphics objects for drawing
         SolidBrush whiteBrush = new SolidBrush(Color.White);
+        SolidBrush blackBrush = new SolidBrush(Color.Black);
+        SolidBrush blueBrush = new SolidBrush(Color.Blue);
+        SolidBrush redBrush = new SolidBrush(Color.Red);
+        SolidBrush greenBrush = new SolidBrush(Color.Green);
+        SolidBrush greyBrush = new SolidBrush(Color.Gray);
+        Pen blackPen, thinBlackPen, greyPen, bluePen, redPen;
         Font drawFont = new Font("Courier New", 10);
 
         // Sounds for game
@@ -36,9 +42,10 @@ namespace Pong
         SoundPlayer collisionSound = new SoundPlayer(Properties.Resources.collision);
 
         //determines whether a key is being pressed or not
-        Boolean wKeyDown, sKeyDown, upKeyDown, downKeyDown;
+        Boolean wKeyDown, sKeyDown, aKeyDown, dKeyDown;
         Boolean iKeyDown, jKeyDown, kKeyDown, lKeyDown;
         Boolean qKeyDown, uKeyDown;
+        Boolean lastPressWOrS, lastpressUpOrDown;
 
         // check to see if a new game can be started
         Boolean newGameOk = true;
@@ -73,20 +80,26 @@ namespace Pong
 
         bool p1dash, p2dash, wStateC, sStateC, upStateC, downStateC;
 
-        float p1dashA, p2dashA;
+        double p1dashA, p2dashA;
         const int TIMER_WAIT = 10;
         int wWait, sWait, upWait, downWait;
-        const int ACCELERATOR = 100;
+        const int ACCELERATOR = 75;
         const int DASH_TIMER = 15;
         int dTrack1, dTrack2;
 
         int labelSpacer = 150;
 
-        int p1counterTime, p2counterTime, p1countercool, p2countercool = 0;
+        int p1counterTime = 0, p2counterTime = 0, p1countercool = 0, p2countercool = 0;
         Rectangle p1Count, p2Count;
         const int COUNTER_DURATION = 5;
-        int p1coolDuration, p2coolDuration = 25;
+        int p1coolDuration = 25, p2coolDuration = 25;
 
+        const int HEALTH_SETTING = 100;
+        int p1Health = HEALTH_SETTING, p2Health = HEALTH_SETTING;
+        Point p1HBar, p2HBar;
+        const int BALL_DAMAGE = 20;
+
+        const int SPEED_LIMX = 11, SPEED_LIMY = 6;
 
         string startText;
         #endregion
@@ -95,6 +108,11 @@ namespace Pong
         {
             InitializeComponent();
             startText = startLabel.Text;
+            blackPen = new Pen(blackBrush, 16);
+            thinBlackPen = new Pen(blackBrush, 8);
+            greyPen = new Pen(greyBrush, 45);
+            bluePen = new Pen(blueBrush, 5);
+            redPen = new Pen(redBrush, 5);
         }
 
         private void wTime_Tick(object sender, EventArgs e)
@@ -164,11 +182,11 @@ namespace Pong
                         sWait = 0;
                     }
                     break;
-                case Keys.Up:
-                    upKeyDown = true;
+                case Keys.A:
+                    aKeyDown = true;
                     break;
-                case Keys.Down:
-                    downKeyDown = true;
+                case Keys.D:
+                    dKeyDown = true;
                     break;
                 case Keys.I:
                     iKeyDown = true;
@@ -204,6 +222,22 @@ namespace Pong
             }
         }
 
+        private void SkillCheck()
+        {
+            if (player1Score > gameWinScore)
+            {
+                GameOver("PLAYER 2 DOMINATES");
+            }
+            else if (player2Score > gameWinScore)
+            {
+                GameOver("PLAYER 1 DOMINATES");
+            }
+            else
+            {
+                SetParameters();
+            }
+        }
+
         private void Form1_KeyUp(object sender, KeyEventArgs e)
         {
             //check to see if a key has been released and set its KeyDown value to false if it has
@@ -215,11 +249,11 @@ namespace Pong
                 case Keys.S:
                     sKeyDown = false;
                     break;
-                case Keys.Up:
-                    upKeyDown = false;
+                case Keys.A:
+                    aKeyDown = false;
                     break;
-                case Keys.Down:
-                    downKeyDown = false;
+                case Keys.D:
+                    dKeyDown = false;
                     break;
                 case Keys.I:
                     iKeyDown = false;
@@ -265,8 +299,12 @@ namespace Pong
             //Set Score Locations
             pScore1 = new Point((this.Width / 2) - labelSpacer, 10);
             pScore2 = new Point((this.Width / 2) + labelSpacer - 10, 10);
-            ballXSpeed = random.Next(1, 6);
-            ballYSpeed = random.Next(1, 6);
+            p2HBar = new Point((this.Width / 2) + labelSpacer - 10, this.Height - 35);
+            p1HBar = new Point((this.Width / 2) - labelSpacer, this.Height - 35);
+            p1Health = HEALTH_SETTING;
+            p2Health = HEALTH_SETTING;
+            ballXSpeed = random.Next(1, SPEED_LIMX);
+            ballYSpeed = random.Next(1, SPEED_LIMY);
             if (random.Next(1, 3) == 1)
             {
                 ballXSpeed *= -1;
@@ -296,10 +334,10 @@ namespace Pong
 
                 if (dash)
                 {
-                    if (wKeyDown && !sKeyDown)
+                    if (lastPressWOrS)
                     {
                         player1.Y -= Convert.ToInt16(p1dashA);
-                        p1dashA /= 2;
+                        p1dashA = (-1 / 250) * (Math.Pow(p1dashA, 2)) + 50;
                         dTrack1 += 1;
                         if (dTrack1 > DASH_TIMER)
                         {
@@ -308,10 +346,10 @@ namespace Pong
                         return;
                     }
 
-                    if (!wKeyDown && sKeyDown)
+                    if (!lastPressWOrS)
                     {
                         player1.Y += Convert.ToInt16(p1dashA);
-                        p1dashA /= 2;
+                        p1dashA = (-1 / 250) * (Math.Pow(p1dashA, 2)) + 50;
                         dTrack1 += 1;
                         if (dTrack1 > DASH_TIMER)
                         {
@@ -319,20 +357,6 @@ namespace Pong
                         }
                         return;
                     }
-                }
-            }
-
-
-
-            else
-            {
-                if (downKeyDown)
-                {
-                    player1.Y += PADDLE_SPEED;
-                }
-                if (upKeyDown)
-                {
-                    player1.Y -= PADDLE_SPEED;
                 }
             }
         }
@@ -344,6 +368,37 @@ namespace Pong
         private void gameUpdateLoop_Tick(object sender, EventArgs e)
         {
             #region update ball position
+
+            if (wKeyDown && !sKeyDown)
+            {
+                lastPressWOrS = true;
+            }
+            else if (sKeyDown && !wKeyDown)
+            {
+                lastPressWOrS = false;
+            }
+
+            if (iKeyDown && !kKeyDown)
+            {
+                lastpressUpOrDown = true;
+            }
+            else if (iKeyDown && !kKeyDown)
+            {
+                lastpressUpOrDown = false;
+            }
+
+            if (aKeyDown)
+            {
+                ballXSpeed = -Math.Abs((player1.X + (player1.Width / 2)) - (ball.X + (ball.Width / 2))) / 10;
+                if (ball.Y + (ball.Height / 2) > player1.Y + (player1.Height / 2))
+                {
+                    ballYSpeed = -Math.Abs((player1.Y + (player1.Height / 2)) - (ball.Y + (ball.Height / 2))) / 10;
+                }
+                else
+                {
+                    ballYSpeed = Math.Abs((ball.Y + (ball.Height / 2)) - (player1.Y + (player1.Height / 2))) / 10;
+                }
+            }
 
             // TODO create code to move ball either left or right based on ballMoveRight and using BALL_SPEED
             ball.X += ballXSpeed;
@@ -358,6 +413,15 @@ namespace Pong
             if (p1Active)
             {
                 PControls(true, p1dash, 0);
+            }
+
+            if ((player1.Y + player1.Height) > this.Height - 50)
+            {
+                player1.Y = this.Height - 50 - player1.Height;
+            }
+            else if (player1.Y < 50)
+            {
+                player1.Y = 50;
             }
 
             if (p2Active)
@@ -375,16 +439,16 @@ namespace Pong
 
             #region ball collision with top and bottom lines
 
-            if (ball.Y < 0)
+            if (ball.Y < 45)
             {
                 ballYSpeed *= -1;
-                ball.Y = 10;
+                ball.Y = 50;
                 collisionSound.Play();
             }
-            else if (ball.Y + ball.Height > this.Height)
+            else if (ball.Y + ball.Height > this.Height - 45)
             {
                 ballYSpeed *= -1;
-                ball.Y = this.Height - ball.Height - 10;
+                ball.Y = this.Height - ball.Height - 50;
                 collisionSound.Play();
             }
 
@@ -409,10 +473,26 @@ namespace Pong
             }
             if (ball.IntersectsWith(p1Count) && p1counterTime > 0)
             {
-                ballXSpeed = random.Next(1, 10);
-                ballYSpeed = random.Next(1, 10);
+                ballXSpeed = random.Next(1, SPEED_LIMX);
+                ballYSpeed = random.Next(1, SPEED_LIMY);
                 ball.X = p1Count.X + p1Count.Width + 5;
                 collisionSound.Play();
+            }
+
+            if (ball.IntersectsWith(player1))
+            {
+                p1Health -= BALL_DAMAGE;
+                ball.Location = new Point((this.Width / 2) - (BALL_WIDTH / 2), (this.Height / 2) - (BALL_HEIGHT / 2));
+                ballXSpeed = random.Next(1, SPEED_LIMX);
+                ballYSpeed = random.Next(1, SPEED_LIMY);
+                if (random.Next(1, 3) == 1)
+                {
+                    ballXSpeed *= -1;
+                }
+                if (random.Next(1, 3) == 1)
+                {
+                    ballYSpeed *= -1;
+                }
             }
 
 
@@ -438,20 +518,7 @@ namespace Pong
             {
                 scoreSound.Play();
                 player2Score++;
-                if (player2Score > gameWinScore)
-                {
-                    GameOver("PLAYER 1 DOMINATES");
-                }
-                else
-                {
-                    SetParameters();
-                }
-                // TODO
-                // --- play score sound
-                // --- update player 2 score and display it to the label
-
-                // TODO use if statement to check to see if player 2 has won the game. If true run 
-                // GameOver() method. Else change direction of ball and call SetParameters() method.
+                SkillCheck();
 
             }
 
@@ -459,16 +526,24 @@ namespace Pong
             {
                 scoreSound.Play();
                 player1Score++;
-                if (player1Score > gameWinScore)
-                {
-                    GameOver("PLAYER 2 DOMINATES");
-                }
-                else
-                {
-                    SetParameters();
-                }
+                SkillCheck();
             }
             // TODO same as above but this time check for collision with the right wall
+
+            if (p1Health <= 0)
+            {
+                //death sound
+                player2Score++;
+                SkillCheck();
+            }
+
+            if (p2Health <= 0)
+            {
+                //death sound
+                player1Score++;
+                SkillCheck();
+            }
+
 
             #endregion
 
@@ -499,12 +574,35 @@ namespace Pong
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
+            e.Graphics.DrawLine(bluePen, player1.X + (player1.Width / 2), player1.Y + 5, ball.X + (ball.Width / 2), ball.Y + (ball.Height / 2));
+            e.Graphics.DrawLine(bluePen, player1.X + (player1.Width / 2), player1.Y + player1.Height - 5, ball.X + (ball.Width / 2), ball.Y + (ball.Height / 2));
+            e.Graphics.DrawLine(redPen, player2.X + (player2.Width / 2), player2.Y + 5, ball.X + (ball.Width / 2), ball.Y + (ball.Height / 2));
+            e.Graphics.DrawLine(redPen, player2.X + (player2.Width / 2), player2.Y + player2.Height - 5, ball.X + (ball.Width / 2), ball.Y + (ball.Height / 2));
+
+            e.Graphics.DrawLine(greyPen, 0, 22, this.Width, 22);
+            e.Graphics.DrawLine(greyPen, 0, this.Height - 22, this.Width, this.Height - 22);
             // TODO draw player2 using FillRectangle
-            e.Graphics.FillRectangle(whiteBrush, player1);
-            e.Graphics.FillRectangle(whiteBrush, player2);
+            e.Graphics.FillRectangle(blueBrush, player1);
+            e.Graphics.FillRectangle(redBrush, player2);
 
             // TODO draw ball using FillRectangle
-            e.Graphics.FillRectangle(whiteBrush, ball);
+            ball.Height = ball.Width = ((this.Width / 2) - Math.Abs((this.Width / 2) - ball.X)) / 10;
+            e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(random.Next(100, 256), random.Next(1, 256), random.Next(1, 256), random.Next(1, 256))), ball);
+
+            //Draw Player Health
+            if (gameUpdateLoop.Enabled)
+            {
+                e.Graphics.DrawString(Convert.ToString(p1Health), startLabel.Font, whiteBrush, p1HBar);
+                e.Graphics.DrawString(Convert.ToString(p2Health), startLabel.Font, whiteBrush, p2HBar);
+            }
+
+            e.Graphics.DrawLine(blackPen, 0, 0, 0, this.Height);
+            e.Graphics.DrawLine(blackPen, this.Width, 0, this.Width, this.Height);
+            e.Graphics.DrawLine(blackPen, 0, 0, this.Width, 0);
+            e.Graphics.DrawLine(blackPen, 0, this.Height, this.Width, this.Height);
+            e.Graphics.DrawLine(thinBlackPen, 0, 40, this.Width, 40);
+            e.Graphics.DrawLine(thinBlackPen, 0, this.Height - 40, this.Width, this.Height - 40);
+
 
             if (newGameOk == false)
             {
