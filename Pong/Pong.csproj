@@ -86,6 +86,27 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ramlogo.ico" />
+    <None Include="Resources\HandRight %288%29.png" />
+    <None Include="Resources\HandRight %287%29.png" />
+    <None Include="Resources\HandRight %286%29.png" />
+    <None Include="Resources\HandRight %285%29.png" />
+    <None Include="Resources\HandRight %284%29.png" />
+    <None Include="Resources\HandRight %283%29.png" />
+    <None Include="Resources\HandRight %282%29.png" />
+    <None Include="Resources\HandRight %281%29.png" />
+    <None Include="Resources\HandLeft %288%29.png" />
+    <None Include="Resources\HandLeft %287%29.png" />
+    <None Include="Resources\HandLeft %286%29.png" />
+    <None Include="Resources\HandLeft %285%29.png" />
+    <None Include="Resources\HandLeft %284%29.png" />
+    <None Include="Resources\HandLeft %283%29.png" />
+    <None Include="Resources\HandLeft %282%29.png" />
+    <None Include="Resources\HandLeft %281%29.png" />
+    <None Include="Resources\stretch-rubber-rope-foley-1-185077.wav" />
+    <None Include="Resources\8-bit-explosion_F.wav" />
+    <None Include="Resources\8-bit-kit-lazer-5.wav" />
+    <None Include="Resources\8-bit-scream_F_minor.wav" />
+    <None Include="Resources\8-bit-bomb-explosion.wav" />
     <None Include="Resources\collision.wav" />
     <None Include="Resources\score.wav" />
     <None Include="Resources\wall bounce.wav" />

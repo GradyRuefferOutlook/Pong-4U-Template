@@ -33,13 +33,17 @@ namespace Pong
         SolidBrush blueBrush = new SolidBrush(Color.Blue);
         SolidBrush redBrush = new SolidBrush(Color.Red);
         SolidBrush greenBrush = new SolidBrush(Color.Green);
-        SolidBrush greyBrush = new SolidBrush(Color.Gray);
+        SolidBrush greyBrush = new SolidBrush(Color.SaddleBrown);
         Pen blackPen, thinBlackPen, greyPen, bluePen, redPen, whitePen;
         Font drawFont = new Font("Courier New", 10);
 
         // Sounds for game
         SoundPlayer scoreSound = new SoundPlayer(Properties.Resources.score);
         SoundPlayer collisionSound = new SoundPlayer(Properties.Resources.collision);
+        SoundPlayer deathSound = new SoundPlayer(Properties.Resources.playerDeath);
+        SoundPlayer gameEnd = new SoundPlayer(Properties.Resources.GameEnd);
+        SoundPlayer shootSound = new SoundPlayer(Properties.Resources.ShootNoise);
+        SoundPlayer ropeSound = new SoundPlayer(Properties.Resources.Rope);
 
         //determines whether a key is being pressed or not
         Boolean wKeyDown, sKeyDown, aKeyDown, dKeyDown;
@@ -110,6 +114,13 @@ namespace Pong
 
         const int JUMP_A = 10, JUMP_T = 15;
 
+        Image[] handLeft = new Image[8];
+        Image[] handRight = new Image[8];
+
+        Rectangle handLeftRect, handRightRect;
+        int p1handHeight = 50, p2HandHeight = 50;
+        int p1HandState = 0, p2HandState = 0;
+
         string startText;
         #endregion
 
@@ -123,6 +134,24 @@ namespace Pong
             bluePen = new Pen(blueBrush, 5);
             redPen = new Pen(redBrush, 5);
             whitePen = new Pen(whiteBrush, 5);
+
+            handLeft[0] = Properties.Resources.HandLeft__1_;
+            handLeft[1] = Properties.Resources.HandLeft__2_;
+            handLeft[2] = Properties.Resources.HandLeft__3_;
+            handLeft[3] = Properties.Resources.HandLeft__4_;
+            handLeft[4] = Properties.Resources.HandLeft__5_;
+            handLeft[5] = Properties.Resources.HandLeft__6_;
+            handLeft[6] = Properties.Resources.HandLeft__7_;
+            handLeft[7] = Properties.Resources.HandLeft__8_;
+
+            handRight[0] = Properties.Resources.HandRight__1_;
+            handRight[1] = Properties.Resources.HandRight__2_;
+            handRight[2] = Properties.Resources.HandRight__3_;
+            handRight[3] = Properties.Resources.HandRight__4_;
+            handRight[4] = Properties.Resources.HandRight__5_;
+            handRight[5] = Properties.Resources.HandRight__6_;
+            handRight[6] = Properties.Resources.HandRight__7_;
+            handRight[7] = Properties.Resources.HandRight__8_;
         }
 
         private void wTime_Tick(object sender, EventArgs e)
@@ -226,6 +255,10 @@ namespace Pong
                         wStateC = false;
                         wWait = 0;
                     }
+                    if (p1HandState > 0)
+                    {
+                        p1HandState++;
+                    }
                     break;
                 case Keys.S:
                     sKeyDown = true;
@@ -249,6 +282,10 @@ namespace Pong
                         upTime.Enabled = true;
                         upStateC = false;
                         upWait = 0;
+                    }
+                    if (p2HandState > 0)
+                    {
+                        p2HandState++;
                     }
                     break;
                 case Keys.J:
@@ -323,6 +360,10 @@ namespace Pong
             {
                 case Keys.W:
                     wKeyDown = false;
+                    if (p1HandState < 50)
+                    {
+                        p1HandState--;
+                    }
                     break;
                 case Keys.S:
                     sKeyDown = false;
@@ -335,6 +376,10 @@ namespace Pong
                     break;
                 case Keys.I:
                     iKeyDown = false;
+                    if (p2HandState < 50)
+                    {
+                        p2HandState--;
+                    }
                     break;
                 case Keys.J:
                     jKeyDown = false;
@@ -602,6 +647,7 @@ namespace Pong
                 p1JumpA = JUMP_A;
                 p1JumpT = JUMP_T;
                 p1JF = true;
+                ropeSound.Play();
             }
 
             if (jKeyDown && p2JumpA == 0)
@@ -609,6 +655,7 @@ namespace Pong
                 p2JumpA = JUMP_A;
                 p2JumpT = JUMP_T;
                 p2JF = true;
+                ropeSound.Play();
             }
 
             // TODO create code to move ball either left or right based on ballMoveRight and using BALL_SPEED
@@ -810,16 +857,31 @@ namespace Pong
 
             if (p1Health <= 0 && p1Health > -55555 )
             {
-                //death sound
+                deathSound.Play();
                 p1Health = -55555;
             }
 
             if (p2Health <= 0 && p2Health > -55555)
             {
-                //death sound
+                deathSound.Play();
                 p2Health = -55555;
             }
 
+            handLeftRect = new Rectangle(player1.X + (player1.Width / 2) - 50, p1handHeight, 100, 50);
+
+            p1HandState++;
+            if (p1HandState > 7)
+            {
+                p1HandState = 0;
+            }
+
+            handRightRect = new Rectangle(player2.X + (player2.Width / 2) - 50, p2HandHeight, 100, 50);
+
+            p2HandState++;
+            if (p2HandState > 7)
+            {
+                p2HandState = 0;
+            }
 
             #endregion
 
@@ -835,6 +897,7 @@ namespace Pong
         private void GameOver(string winner)
         {
             newGameOk = true;
+            gameEnd.Play();
 
             gameUpdateLoop.Enabled = false;
             startLabel.Text = $"{winner} \n {startText}";
@@ -906,6 +969,13 @@ namespace Pong
             {
                 e.Graphics.DrawArc(whitePen, player2.X - (player2.Width * 2), player2.Y - 10, p2Count.Width * 3, p2Count.Height + 20, -90, -180 / p2counterTime);
             }
+
+            e.Graphics.DrawLine(bluePen, player1.X + (player1.Width / 2), handLeftRect.Y  +20, player1.X + (player1.Width / 2), player1.Y + 10);
+            e.Graphics.DrawLine(redPen, player2.X + (player2.Width / 2), handRightRect.Y  +20, player2.X + (player2.Width / 2), player2.Y + 10);
+
+
+            e.Graphics.DrawImage(handLeft[p1HandState], handLeftRect);
+            e.Graphics.DrawImage(handRight[p2HandState], handRightRect);
         }
 
     }
