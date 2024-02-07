@@ -70,10 +70,12 @@
             // upTime
             // 
             this.upTime.Interval = 16;
+            this.upTime.Tick += new System.EventHandler(this.upTime_Tick);
             // 
             // downTime
             // 
             this.downTime.Interval = 16;
+            this.downTime.Tick += new System.EventHandler(this.downTime_Tick);
             // 
             // Form1
             // 
